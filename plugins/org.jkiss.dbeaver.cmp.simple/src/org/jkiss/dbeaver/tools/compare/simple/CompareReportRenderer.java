@@ -124,9 +124,13 @@ public class CompareReportRenderer {
         xml.endElement();
     }
 
-    private void renderBody(DBRProgressMonitor monitor) throws IOException
-    {
-        // Table head
+    private void renderBody(DBRProgressMonitor monitor) throws IOException {
+        renderTableHead();
+        renderTableBody(monitor);
+        renderTableFooter();
+    }
+
+    private void renderTableHead() throws IOException {
         xml.startElement("tr");
         xml.startElement("th");
         xml.addText("Structure");
@@ -137,12 +141,14 @@ public class CompareReportRenderer {
             xml.endElement();
         }
         xml.endElement();
+    }
 
-        // Table body
+    private void renderTableBody(DBRProgressMonitor monitor) throws IOException {
         boolean showOnlyDifferences = settings.isShowOnlyDifferences();
         int objectCount = report.getNodes().size();
         List<CompareReportLine> reportLines = report.getReportLines();
         int reportLinesSize = reportLines.size();
+
         for (int i = 0; i < reportLinesSize; i++) {
             monitor.worked(1);
             CompareReportLine line = reportLines.get(i);
@@ -150,101 +156,101 @@ public class CompareReportRenderer {
                 continue;
             }
             boolean onlyStructure = line.structure instanceof DBNDatabaseFolder && !line.hasDifference;
-            // Skip empty folders
             if (onlyStructure && (i >= reportLinesSize - 1 || reportLines.get(i + 1).depth <= line.depth)) {
                 continue;
             }
 
-            xml.startElement("tr");
-            xml.addAttribute("class", "object level" + line.depth);
-            xml.addAttribute("valign", "top");
+            renderTableRow(line, objectCount);
+            renderProperties(line, objectCount);
+        }
+    }
+
+    private void renderTableRow(CompareReportLine line, int objectCount) throws IOException {
+        xml.startElement("tr");
+        xml.addAttribute("class", "object level" + line.depth);
+        xml.addAttribute("valign", "top");
+        xml.startElement("td");
+        xml.addText(line.structure.getNodeType());
+        xml.endElement();
+        if (line.structure instanceof DBNDatabaseFolder && !line.hasDifference) {
             xml.startElement("td");
-            xml.addText(line.structure.getNodeType());
+            xml.addAttribute("colspan", objectCount);
+            xml.addText("&nbsp;", false);
             xml.endElement();
-            if (onlyStructure) {
+        } else {
+            for (int k = 0; k < objectCount; k++) {
                 xml.startElement("td");
-                xml.addAttribute("colspan", line.nodes.length);
-                xml.addText("&nbsp;", false);
+                if (line.nodes[k] == null) {
+                    xml.addAttribute("class", "missing");
+                    xml.addText("N/A");
+                } else {
+                    xml.addText(line.nodes[k].getName());
+                }
                 xml.endElement();
-            } else {
-                for (int k = 0; k < objectCount; k++) {
-                    xml.startElement("td");
-                    if (line.nodes[k] == null) {
-                        xml.addAttribute("class", "missing");
-                        xml.addText("N/A");
-                    } else {
-                        xml.addText(line.nodes[k].getName());
-                    }
-                    xml.endElement();
-                }
-            }
-
-            xml.endElement();
-
-            if (line.properties != null) {
-                for (CompareReportProperty reportProperty : line.properties) {
-                    boolean differs = false;
-                    Object firstValue = null;
-                    boolean hasValue = false;
-                    for (int k = 0; k < reportProperty.values.length; k++) {
-                        if (line.nodes[k] == null) {
-                            // Ignore properties of missing objects
-                            continue;
-                        }
-                        Object value = reportProperty.values[k];
-                        if (value != null) {
-                            hasValue = true;
-                            if (firstValue == null) {
-                                firstValue = value;
-                            }
-                        }
-                        if (!CompareUtils.equalPropertyValues(value, firstValue)) {
-                            differs = true;
-                            break;
-                        }
-                    }
-                    if (!hasValue) {
-                        // Skip[ properties when nobody have it's value
-                        continue;
-                    }
-                    if (showOnlyDifferences && !differs) {
-                        continue;
-                    }
-                    xml.startElement("tr");
-                    xml.addAttribute("class", "property level" + (line.depth + 1) + (differs ? " differs" : ""));
-                    xml.addAttribute("valign", "top");
-                    xml.startElement("td");
-                    xml.addText(reportProperty.property.getDisplayName());
-                    xml.endElement();
-
-                    for (int k = 0; k < objectCount; k++) {
-                        xml.startElement("td");
-                        String stringValue = "";
-                        if (reportProperty.values[k] != null) {
-                            stringValue = reportProperty.values[k].toString();
-                        }
-                        if (CommonUtils.isEmpty(stringValue)) {
-                            xml.addText("&nbsp;", false);
-                        } else {
-                            xml.addText(stringValue);
-                        }
-
-                        xml.endElement();
-                    }
-
-                    xml.endElement();
-                }
             }
         }
+        xml.endElement();
+    }
 
-        // Table footer
+    private void renderProperties(CompareReportLine line, int objectCount) throws IOException {
+        if (line.properties != null) {
+            for (CompareReportProperty reportProperty : line.properties) {
+                boolean differs = false;
+                Object firstValue = null;
+                boolean hasValue = false;
+                for (int k = 0; k < reportProperty.values.length; k++) {
+                    if (line.nodes[k] == null) {
+                        continue;
+                    }
+                    Object value = reportProperty.values[k];
+                    if (value != null) {
+                        hasValue = true;
+                        if (firstValue == null) {
+                            firstValue = value;
+                        }
+                    }
+                    if (!CompareUtils.equalPropertyValues(value, firstValue)) {
+                        differs = true;
+                        break;
+                    }
+                }
+                if (!hasValue) {
+                    continue;
+                }
+                if (settings.isShowOnlyDifferences() && !differs) {
+                    continue;
+                }
+                xml.startElement("tr");
+                xml.addAttribute("class", "property level" + (line.depth + 1) + (differs ? " differs" : ""));
+                xml.addAttribute("valign", "top");
+                xml.startElement("td");
+                xml.addText(reportProperty.property.getDisplayName());
+                xml.endElement();
+                for (int k = 0; k < objectCount; k++) {
+                    xml.startElement("td");
+                    String stringValue = "";
+                    if (reportProperty.values[k] != null) {
+                        stringValue = reportProperty.values[k].toString();
+                    }
+                    if (CommonUtils.isEmpty(stringValue)) {
+                        xml.addText("&nbsp;", false);
+                    } else {
+                        xml.addText(stringValue);
+                    }
+                    xml.endElement();
+                }
+                xml.endElement();
+            }
+        }
+    }
+
+    private void renderTableFooter() throws IOException {
         xml.startElement("tr");
         xml.addAttribute("class", "object");
         xml.startElement("td");
         xml.addAttribute("colspan", report.getNodes().size() + 1);
-        xml.addText("" + reportLines.size() + " objects compared");
+        xml.addText("" + report.getReportLines().size() + " objects compared");
         xml.endElement();
         xml.endElement();
-
     }
 }
