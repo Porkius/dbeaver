@@ -50,7 +50,7 @@ public class CompareObjectsWizard extends Wizard implements IExportWizard {
 
     private static final Log log = Log.getLog(CompareObjectsWizard.class);
 
-    private static final String RS_COMPARE_WIZARD_DIALOG_SETTINGS = "CompareWizard";//$NON-NLS-1$
+    private static final String COMPARE_WIZARD = "CompareWizard";//$NON-NLS-1$
 
     private CompareObjectsSettings settings;
 
@@ -59,7 +59,7 @@ public class CompareObjectsWizard extends Wizard implements IExportWizard {
         this.settings = new CompareObjectsSettings(nodes);
         this.settings.setOutputFolder(DialogUtils.getCurDialogFolder());
 
-        IDialogSettings section = UIUtils.getDialogSettings(RS_COMPARE_WIZARD_DIALOG_SETTINGS);
+        IDialogSettings section = UIUtils.getDialogSettings(COMPARE_WIZARD);
         setDialogSettings(section);
 
         settings.loadFrom(new DialogSettingsDelegate(section));
