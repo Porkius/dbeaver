@@ -12,7 +12,7 @@
 
   <modules>
     <!-- dbeaver common -->
-    <module>../../../dbeaver-common</module>
+    <module>../../dbeaver-common</module>
     <!-- dbeaver ce -->
     <module>../..</module>
   </modules>
