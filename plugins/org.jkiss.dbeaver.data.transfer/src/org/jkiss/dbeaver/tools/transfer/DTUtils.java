@@ -294,7 +294,7 @@ public class DTUtils {
         List<? extends DBCAttributeMetaData> attributes = resultSet.getMeta().getAttributes();
         boolean isDocumentAttribute = attributes.size() == 1 && attributes.get(0).getDataKind() == DBPDataKind.DOCUMENT;
         if (isDocumentAttribute) {
-            bindDocumentAttribute(session, dataContainer, resultSet, attributes, metaColumns);
+            bindDocumentAttribute(new DocumentBindingParams(session, dataContainer, resultSet, attributes, metaColumns));
         }
         if (metaColumns.isEmpty()) {
             for (DBCAttributeMetaData attribute : attributes) {
@@ -328,13 +328,13 @@ public class DTUtils {
             true);
     }
 
-    private static void bindDocumentAttribute(
-        @NotNull DBCSession session,
-        @NotNull DBSDataContainer dataContainer,
-        @NotNull DBCResultSet resultSet,
-        List<? extends DBCAttributeMetaData> attributes,
-        List<DBDAttributeBinding> metaColumns
-    ) {
+    private static void bindDocumentAttribute(DocumentBindingParams params) {
+        DBCSession session = params.getSession();
+        DBSDataContainer dataContainer = params.getDataContainer();
+        DBCResultSet resultSet = params.getResultSet();
+        List<? extends DBCAttributeMetaData> attributes = params.getAttributes();
+        List<DBDAttributeBinding> metaColumns = params.getMetaColumns();
+
         DBCAttributeMetaData attributeMeta = attributes.get(0);
         DBDAttributeBindingMeta docBinding = DBUtils.getAttributeBinding(dataContainer, session, attributeMeta);
         try {
@@ -369,6 +369,7 @@ public class DTUtils {
         }
     }
 
+
     private static void addLeafBindings(List<DBDAttributeBinding> result, DBDAttributeBinding binding) {
         List<DBDAttributeBinding> nestedBindings = binding.getNestedBindings();
         if (CommonUtils.isEmpty(nestedBindings)) {
@@ -380,6 +381,44 @@ public class DTUtils {
         }
     }
 
+    private static class DocumentBindingParams {
+        private final DBCSession session;
+        private final DBSDataContainer dataContainer;
+        private final DBCResultSet resultSet;
+        private final List<? extends DBCAttributeMetaData> attributes;
+        private final List<DBDAttributeBinding> metaColumns;
+
+        public DocumentBindingParams(@NotNull DBCSession session,
+                                     @NotNull DBSDataContainer dataContainer,
+                                     @NotNull DBCResultSet resultSet,
+                                     List<? extends DBCAttributeMetaData> attributes,
+                                     List<DBDAttributeBinding> metaColumns) {
+            this.session = session;
+            this.dataContainer = dataContainer;
+            this.resultSet = resultSet;
+            this.attributes = attributes;
+            this.metaColumns = metaColumns;
+        }
+        public DBCSession getSession() {
+            return session;
+        }
+
+        public DBSDataContainer getDataContainer() {
+            return dataContainer;
+        }
+
+        public DBCResultSet getResultSet() {
+            return resultSet;
+        }
+
+        public List<? extends DBCAttributeMetaData> getAttributes() {
+            return attributes;
+        }
+
+        public List<DBDAttributeBinding> getMetaColumns() {
+            return metaColumns;
+        }
+    }
     private static class MetadataReceiver implements DBDDataReceiver {
         private final DBSDataContainer container;
         private DBDAttributeBinding[] attributes;
