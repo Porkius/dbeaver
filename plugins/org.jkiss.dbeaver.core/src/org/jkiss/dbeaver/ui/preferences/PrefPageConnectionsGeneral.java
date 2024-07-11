@@ -48,7 +48,7 @@ import org.jkiss.dbeaver.ui.contentassist.StringContentProposalProvider;
 import org.jkiss.dbeaver.ui.controls.CSmartCombo;
 import org.jkiss.dbeaver.ui.controls.VariablesHintLabel;
 import org.jkiss.dbeaver.ui.dialogs.connection.ConnectionNameResolver;
-import org.jkiss.dbeaver.ui.dialogs.connection.ConnectionPageGeneral;
+import org.jkiss.dbeaver.ui.dialogs.connection.ConnectionPageGeneralHelper;
 import org.jkiss.dbeaver.ui.dialogs.connection.NavigatorSettingsStorage;
 import org.jkiss.dbeaver.utils.GeneralUtils;
 import org.jkiss.dbeaver.utils.HelpUtils;
@@ -89,14 +89,14 @@ public class PrefPageConnectionsGeneral extends AbstractPrefPage implements IWor
         {
             Group groupDefaults = UIUtils.createControlGroup(composite, CoreMessages.pref_page_connection_label_default_settings, 1, GridData.VERTICAL_ALIGN_BEGINNING, 0);
             Composite groupComposite = UIUtils.createComposite(groupDefaults, 2);
-            connectionTypeCombo = ConnectionPageGeneral.createConnectionTypeCombo(groupComposite);
+            connectionTypeCombo = ConnectionPageGeneralHelper.createConnectionTypeCombo(groupComposite);
             connectionTypeCombo.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent e) {
                     defaultConnectionType = connectionTypeCombo.getSelectedItem();
                 }
             });
-            navigatorSettingsCombo = ConnectionPageGeneral.createNavigatorSettingsCombo(groupComposite, this, null);
+            navigatorSettingsCombo = ConnectionPageGeneralHelper.createNavigatorSettingsCombo(groupComposite, this, null);
             connectionDefaultNamePatternText = UIUtils.createLabelText(groupComposite, CoreMessages.pref_page_connection_label_default_connection_name_pattern, CoreMessages.pref_page_connection_label_default_connection_name_pattern_tip);
             ContentAssistUtils.installContentProposal(
                 connectionDefaultNamePatternText,
@@ -282,7 +282,7 @@ public class PrefPageConnectionsGeneral extends AbstractPrefPage implements IWor
             }
         }
         defaultNavigatorSettings = DataSourceNavigatorSettings.getDefaultSettings();
-        ConnectionPageGeneral.updateNavigatorSettingsPreset(navigatorSettingsCombo, defaultNavigatorSettings);
+        ConnectionPageGeneralHelper.updateNavigatorSettingsPreset(navigatorSettingsCombo, defaultNavigatorSettings);
         super.performDefaults();
     }
 
