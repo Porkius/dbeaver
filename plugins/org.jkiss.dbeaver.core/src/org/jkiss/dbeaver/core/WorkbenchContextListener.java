@@ -145,6 +145,12 @@ public class WorkbenchContextListener implements IWindowListener, IPageListener,
         }
     }
 
+
+    public void refreshPartContexts(IWorkbenchPart part) {
+        deactivatePartContexts(part);
+        activatePartContexts(part);
+    }
+
     /////////////////////////////////////////////////
     // IWindowListener
 

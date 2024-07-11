@@ -130,10 +130,10 @@ public class DesktopUI implements DBPPlatformUI {
         }.schedule();
     }
 
+
     public void refreshPartContexts(IWorkbenchPart part) {
         if (contextListener != null) {
-            contextListener.deactivatePartContexts(part);
-            contextListener.activatePartContexts(part);
+            contextListener.refreshPartContexts(part);
         }
     }
 
